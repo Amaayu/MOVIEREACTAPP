@@ -78,28 +78,28 @@ const PWAInstallPrompt = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg shadow-2xl p-4 z-50 animate-slide-up">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-96 bg-gradient-to-r from-[#6556CD] to-[#9b8aff] text-white rounded-xl shadow-2xl p-5 z-50 border border-white/20 backdrop-blur-sm animate-slide-up">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 bg-white/20 p-2 rounded-lg">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-lg mb-1">Install Movie App</h3>
+          <h3 className="font-bold text-lg mb-1">Install MovieHub</h3>
           <p className="text-sm text-white/90 mb-3">
             Install our app for a better experience with offline access and faster loading!
           </p>
           <div className="flex gap-2">
             <button
               onClick={handleInstallClick}
-              className="flex-1 bg-white text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex-1 bg-white text-[#6556CD] font-semibold py-2 px-4 rounded-lg hover:bg-white/90 transition-all transform hover:scale-105"
             >
-              Install
+              Install Now
             </button>
             <button
               onClick={handleDismiss}
-              className="px-4 py-2 text-white/90 hover:text-white transition-colors"
+              className="px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             >
               Later
             </button>
@@ -107,7 +107,7 @@ const PWAInstallPrompt = () => {
         </div>
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 text-white/70 hover:text-white transition-colors"
+          className="flex-shrink-0 text-white/70 hover:text-white hover:bg-white/10 p-1 rounded transition-all"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
