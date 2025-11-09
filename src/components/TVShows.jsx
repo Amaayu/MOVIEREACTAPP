@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import api from '../utils/api';
 import Sidbar from './partials/Sidbar';
 import Topnav from './partials/Topnav';
+import VideoPlayer from './partials/VideoPlayer';
 import { 
   FaStar, FaPlay, FaBookmark, FaHeart, 
   FaFilter, FaChevronDown, FaCalendarAlt,
@@ -19,6 +20,9 @@ const TVShows = () => {
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
   const [likedItems, setLikedItems] = useState(new Set());
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videoTitle, setVideoTitle] = useState('');
+  const [allVideos, setAllVideos] = useState([]);
   const navigate = useNavigate();
   
   // Generate years from 2024 down to 1970
@@ -178,6 +182,43 @@ const TVShows = () => {
   
   const stats = calculateStats();
   
+  // Fetch video/trailer
+  const handlePlayClick = async (show) => {
+    try {
+      const { data } = await axios.get(`/tv/${show.id}/videos`);
+      
+      if (data.results && data.results.length > 0) {
+        const youtubeVideos = data.results.filter(video => video.site === 'YouTube');
+        
+        if (youtubeVideos.length === 0) {
+          alert('No trailer available for this show');
+          return;
+        }
+        
+        const trailer = youtubeVideos.find(
+          (video) => video.type === 'Trailer'
+        ) || youtubeVideos.find(
+          (video) => video.type === 'Teaser'
+        ) || youtubeVideos[0];
+        
+        setSelectedVideo(trailer.key);
+        setVideoTitle(show.name);
+        setAllVideos(youtubeVideos);
+      } else {
+        alert('No trailer available for this show');
+      }
+    } catch (error) {
+      console.error('Error fetching video:', error);
+      alert('Unable to load trailer');
+    }
+  };
+
+  const closeVideo = () => {
+    setSelectedVideo(null);
+    setVideoTitle('');
+    setAllVideos([]);
+  };
+
   // Handle TV show click
   const handleTVShowClick = (showId) => {
     navigate(`/tv/${showId}`);
@@ -351,7 +392,7 @@ const TVShows = () => {
                 
                 <div className="flex justify-between items-center gap-1">
                   <button 
-                    onClick={() => handleTVShowClick(show.id)}
+                    onClick={() => handlePlayClick(show)}
                     className="flex items-center gap-1 text-[10px] bg-gradient-to-r from-[#4a86e8] to-[#6ea1ff] hover:from-[#3a76d8] hover:to-[#5e91ef] text-white px-2 py-1 rounded-md transition-all duration-300"
                   >
                     <FaPlay className="text-[8px]" />
@@ -399,6 +440,16 @@ const TVShows = () => {
       )}
         </div>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer 
+          videoKey={selectedVideo} 
+          onClose={closeVideo}
+          title={videoTitle}
+          allVideos={allVideos}
+        />
+      )}
     </div>
   );
 };

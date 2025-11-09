@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import api from '../utils/api';
 import Sidbar from './partials/Sidbar';
 import Topnav from './partials/Topnav';
+import VideoPlayer from './partials/VideoPlayer';
 import { 
   FaStar, FaPlay, FaBookmark, FaHeart, FaFire, 
   FaFilter, FaChevronDown, FaCalendarAlt
@@ -14,6 +15,9 @@ const Trending = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
   const [likedItems, setLikedItems] = useState(new Set());
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videoTitle, setVideoTitle] = useState('');
+  const [allVideos, setAllVideos] = useState([]);
 
   const getTrending = async (type = 'all') => {
     try {
@@ -126,6 +130,44 @@ const Trending = () => {
         alert('Please login to like items');
       }
     }
+  };
+
+  // Fetch video/trailer
+  const handlePlayClick = async (item) => {
+    try {
+      const mediaType = item.media_type === 'movie' ? 'movie' : 'tv';
+      const { data } = await axios.get(`/${mediaType}/${item.id}/videos`);
+      
+      if (data.results && data.results.length > 0) {
+        const youtubeVideos = data.results.filter(video => video.site === 'YouTube');
+        
+        if (youtubeVideos.length === 0) {
+          alert('No trailer available for this content');
+          return;
+        }
+        
+        const trailer = youtubeVideos.find(
+          (video) => video.type === 'Trailer'
+        ) || youtubeVideos.find(
+          (video) => video.type === 'Teaser'
+        ) || youtubeVideos[0];
+        
+        setSelectedVideo(trailer.key);
+        setVideoTitle(item.title || item.name);
+        setAllVideos(youtubeVideos);
+      } else {
+        alert('No trailer available for this content');
+      }
+    } catch (error) {
+      console.error('Error fetching video:', error);
+      alert('Unable to load trailer');
+    }
+  };
+
+  const closeVideo = () => {
+    setSelectedVideo(null);
+    setVideoTitle('');
+    setAllVideos([]);
   };
 
   const formatDate = (dateString) => {
@@ -279,7 +321,9 @@ const Trending = () => {
                 </div>
                 
                 <div className="flex justify-between items-center gap-1">
-                  <button className="flex items-center gap-1 text-[10px] bg-gradient-to-r from-[#6556CD] to-[#9b8aff] hover:from-[#7561e0] hover:to-[#a896ff] text-white px-2 py-1 rounded-md transition-all duration-300">
+                  <button 
+                    onClick={() => handlePlayClick(item)}
+                    className="flex items-center gap-1 text-[10px] bg-gradient-to-r from-[#6556CD] to-[#9b8aff] hover:from-[#7561e0] hover:to-[#a896ff] text-white px-2 py-1 rounded-md transition-all duration-300">
                     <FaPlay className="text-[8px]" />
                     <span>Play</span>
                   </button>
@@ -325,6 +369,16 @@ const Trending = () => {
       )}
         </div>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer 
+          videoKey={selectedVideo} 
+          onClose={closeVideo}
+          title={videoTitle}
+          allVideos={allVideos}
+        />
+      )}
     </div>
   );
 };
