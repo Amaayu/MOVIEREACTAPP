@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Use environment variable or default to local backend
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Use environment variable or detect production/development
+const API_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api');
 
 const api = axios.create({
   baseURL: API_URL,
