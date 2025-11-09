@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlay, FaInfoCircle, FaStar, FaPlus, FaVolumeUp, FaClosedCaptioning } from 'react-icons/fa';
+import MovieDetailModal from './MovieDetailModal';
 
 const Header = ({ data, onPlayClick }) => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
   
   // Determine content type and extract relevant information
   const isMovie = data.title && data.release_date;
@@ -23,11 +25,7 @@ const Header = ({ data, onPlayClick }) => {
   };
 
   const handleMoreInfo = () => {
-    if (isMovie) {
-      navigate(`/movie/${data.id}`);
-    } else if (isTVShow) {
-      navigate(`/tv/${data.id}`);
-    }
+    setShowModal(true);
   };
 
   return (
@@ -150,6 +148,15 @@ const Header = ({ data, onPlayClick }) => {
         <div className="absolute top-4 right-4 z-30 bg-[#1e1830]/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium border border-[#6556CD]/30">
           {data.number_of_seasons} season{data.number_of_seasons > 1 ? 's' : ''}
         </div>
+      )}
+
+      {/* Movie Detail Modal */}
+      {showModal && (
+        <MovieDetailModal
+          item={data}
+          onClose={() => setShowModal(false)}
+          onPlayClick={onPlayClick}
+        />
       )}
     </div>
   );
