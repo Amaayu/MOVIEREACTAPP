@@ -1,0 +1,406 @@
+import React, { useState, useEffect } from 'react';
+import axios from '../utils/axios';
+import api from '../utils/api';
+import Sidbar from './partials/Sidbar';
+import Topnav from './partials/Topnav';
+import { 
+  FaStar, FaPlay, FaBookmark, FaHeart, 
+  FaFilter, FaChevronDown, FaCalendarAlt,
+  FaFire, FaArrowUp, FaArrowDown
+} from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+
+const Movies = () => {
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [sortBy, setSortBy] = useState('popularity.desc');
+  const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
+  const [likedItems, setLikedItems] = useState(new Set());
+  const navigate = useNavigate();
+  
+  // Generate years from 2024 down to 1970
+  const years = Array.from({ length: 55 }, (_, i) => 2024 - i);
+  
+  // Fetch genres
+  const getGenres = async () => {
+    try {
+      const { data } = await axios.get('/genre/movie/list');
+      setGenres(data.genres);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
+  
+  // Fetch movies
+  const getMovies = async () => {
+    try {
+      setIsLoading(true);
+      let endpoint = '/discover/movie?';
+      
+      // Add genre filter if selected
+      if (selectedGenre) {
+        endpoint += `with_genres=${selectedGenre}&`;
+      }
+      
+      // Add year filter if selected
+      if (selectedYear) {
+        endpoint += `primary_release_year=${selectedYear}&`;
+      }
+      
+      // Add sorting
+      endpoint += `sort_by=${sortBy}`;
+      
+      const { data } = await axios.get(endpoint);
+      setMovies(data.results);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    getGenres();
+  }, []);
+  
+  useEffect(() => {
+    getMovies();
+  }, [selectedGenre, selectedYear, sortBy]);
+
+  // Load bookmarks and likes on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const [bookmarksRes, likesRes] = await Promise.all([
+          api.get('/bookmarks'),
+          api.get('/likes')
+        ]);
+
+        const bookmarks = new Set(
+          bookmarksRes.data.bookmarks.map(b => `${b.mediaId}-${b.mediaType}`)
+        );
+        const likes = new Set(
+          likesRes.data.likes.map(l => `${l.mediaId}-${l.mediaType}`)
+        );
+
+        setBookmarkedItems(bookmarks);
+        setLikedItems(likes);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  // Handle bookmark
+  const handleBookmark = async (movie, e) => {
+    e.stopPropagation();
+    const itemKey = `${movie.id}-movie`;
+    
+    try {
+      if (bookmarkedItems.has(itemKey)) {
+        await api.delete(`/bookmarks/${movie.id}/movie`);
+        setBookmarkedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemKey);
+          return newSet;
+        });
+      } else {
+        await api.post('/bookmarks', {
+          mediaId: movie.id,
+          mediaType: 'movie',
+          title: movie.title,
+          posterPath: movie.poster_path,
+          overview: movie.overview,
+          releaseDate: movie.release_date,
+          voteAverage: movie.vote_average
+        });
+        setBookmarkedItems(prev => new Set([...prev, itemKey]));
+      }
+    } catch (error) {
+      console.error('Bookmark error:', error);
+      if (error.response?.status === 401) {
+        alert('Please login to bookmark items');
+      }
+    }
+  };
+
+  // Handle like
+  const handleLike = async (movie, e) => {
+    e.stopPropagation();
+    const itemKey = `${movie.id}-movie`;
+    
+    try {
+      if (likedItems.has(itemKey)) {
+        await api.delete(`/likes/${movie.id}/movie`);
+        setLikedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemKey);
+          return newSet;
+        });
+      } else {
+        await api.post('/likes', {
+          mediaId: movie.id,
+          mediaType: 'movie',
+          title: movie.title,
+          posterPath: movie.poster_path,
+          overview: movie.overview,
+          releaseDate: movie.release_date,
+          voteAverage: movie.vote_average
+        });
+        setLikedItems(prev => new Set([...prev, itemKey]));
+      }
+    } catch (error) {
+      console.error('Like error:', error);
+      if (error.response?.status === 401) {
+        alert('Please login to like items');
+      }
+    }
+  };
+  
+  // Calculate stats
+  const calculateStats = () => {
+    const total = movies.length;
+    const highlyRated = movies.filter(movie => movie.vote_average >= 7.5).length;
+    const averageRating = total > 0 
+      ? (movies.reduce((sum, movie) => sum + movie.vote_average, 0) / total).toFixed(1)
+      : 0;
+    
+    return { total, highlyRated, averageRating };
+  };
+  
+  const stats = calculateStats();
+  
+  // Handle movie click
+  const handleMovieClick = (movieId) => {
+    navigate(`/movie/${movieId}`);
+  };
+  
+  return (
+    <div className="flex min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-950">
+      <Sidbar />
+      <div className="w-full flex-1 flex flex-col">
+        <Topnav />
+        <div className="flex-grow overflow-y-auto bg-gradient-to-br from-[#0d0917] to-[#1a1125] text-white p-4 md:p-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-r from-purple-600 to-[#6556CD] p-3 rounded-xl">
+            <FaFire className="text-white text-xl" />
+          </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white">Movie Collection</h1>
+            <p className="text-zinc-400 text-sm">Discover our extensive movie library</p>
+          </div>
+        </div>
+        
+        {/* Sort dropdown */}
+        <div className="flex flex-col w-full md:w-auto">
+          <label className="text-zinc-300 text-sm mb-1 flex items-center gap-2">
+            <FaFilter className="text-purple-500" /> Sort by
+          </label>
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full md:w-48 bg-[#1e1830] text-white px-4 py-3 rounded-xl border border-[#6556CD]/30 outline-none shadow-lg hover:border-purple-500 focus:ring-2 focus:ring-purple-500 transition-all duration-300 cursor-pointer appearance-none"
+            >
+              <option value="popularity.desc">Popularity (High to Low)</option>
+              <option value="popularity.asc">Popularity (Low to High)</option>
+              <option value="vote_average.desc">Rating (High to Low)</option>
+              <option value="vote_average.asc">Rating (Low to High)</option>
+              <option value="release_date.desc">Newest First</option>
+              <option value="release_date.asc">Oldest First</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <FaChevronDown className="text-sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Filter Section */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        {/* Genre filter */}
+        <div className="flex flex-col w-full sm:w-auto">
+          <label className="text-zinc-300 text-sm mb-1">Genre</label>
+          <div className="relative">
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="w-full sm:w-48 bg-[#1e1830] text-white px-4 py-3 rounded-xl border border-[#6556CD]/30 outline-none shadow-lg hover:border-purple-500 focus:ring-2 focus:ring-purple-500 transition-all duration-300 cursor-pointer appearance-none"
+            >
+              <option value="">All Genres</option>
+              {genres.map(genre => (
+                <option key={genre.id} value={genre.id}>{genre.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <FaChevronDown className="text-sm" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Year filter */}
+        <div className="flex flex-col w-full sm:w-auto">
+          <label className="text-zinc-300 text-sm mb-1">Release Year</label>
+          <div className="relative">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="w-full sm:w-32 bg-[#1e1830] text-white px-4 py-3 rounded-xl border border-[#6556CD]/30 outline-none shadow-lg hover:border-purple-500 focus:ring-2 focus:ring-purple-500 transition-all duration-300 cursor-pointer appearance-none"
+            >
+              <option value="">All Years</option>
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <FaChevronDown className="text-sm" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Reset filters button */}
+        <div className="flex flex-col justify-end w-full sm:w-auto">
+          <button
+            onClick={() => {
+              setSelectedGenre('');
+              setSelectedYear('');
+            }}
+            className="h-full bg-[#1e1830] hover:bg-[#2a1f40] text-zinc-300 px-4 py-3 rounded-xl border border-[#6556CD]/30 outline-none shadow-lg hover:text-white transition-all duration-300"
+          >
+            Reset Filters
+          </button>
+        </div>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-[#1e1830] to-[#2a1f40] rounded-xl p-4 border border-[#6556CD]/20">
+          <div className="text-purple-400 font-bold text-2xl">{stats.total}</div>
+          <div className="text-zinc-400 text-sm mt-1">Total Movies</div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-[#1e1830] to-[#2a1f40] rounded-xl p-4 border border-[#6556CD]/20">
+          <div className="text-purple-400 font-bold text-2xl">{stats.highlyRated}</div>
+          <div className="text-zinc-400 text-sm mt-1">Highly Rated</div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-[#1e1830] to-[#2a1f40] rounded-xl p-4 border border-[#6556CD]/20">
+          <div className="text-purple-400 font-bold text-2xl">{stats.averageRating}</div>
+          <div className="text-zinc-400 text-sm mt-1">Avg. Rating</div>
+        </div>
+      </div>
+      
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex justify-center py-16">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
+        </div>
+      )}
+      
+      {/* Movies grid */}
+      {!isLoading && movies.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+          {movies.map((movie) => (
+            <div
+              key={movie.id}
+              className="group bg-gradient-to-br from-[#1e1830] to-[#2a1f40] rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-[#6556CD]/20 hover:border-purple-500/30 max-w-[200px] mx-auto w-full"
+            >
+              {/* Movie poster */}
+              <div className="relative overflow-hidden aspect-[2/3]">
+                {movie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
+                    alt={movie.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-[#6556CD]/30 flex items-center justify-center">
+                    <div className="text-purple-500 text-4xl">🎬</div>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1125] to-transparent"></div>
+                
+                {/* Rating badge */}
+                <div className="absolute top-2 right-2 bg-[#1a1125]/80 text-purple-400 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 text-[10px]">
+                  <FaStar className="text-[8px]" />
+                  <span>{movie.vote_average.toFixed(1)}</span>
+                </div>
+              </div>
+              
+              {/* Movie info */}
+              <div className="p-2">
+                <h2 className="text-sm font-bold text-white truncate mb-1 group-hover:text-purple-400 transition-colors">
+                  {movie.title}
+                </h2>
+                
+                <div className="flex items-center text-zinc-400 text-[10px] mb-2">
+                  <span>
+                    {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown year'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center gap-1">
+                  <button 
+                    onClick={() => handleMovieClick(movie.id)}
+                    className="flex items-center gap-1 text-[10px] bg-gradient-to-r from-[#6556CD] to-[#9b8aff] hover:from-[#7561e0] hover:to-[#a896ff] text-white px-2 py-1 rounded-md transition-all duration-300"
+                  >
+                    <FaPlay className="text-[8px]" />
+                    <span>Play</span>
+                  </button>
+                  
+                  <div className="flex gap-1 text-zinc-500">
+                    <button 
+                      onClick={(e) => handleBookmark(movie, e)}
+                      className={`transition-colors p-1 rounded-full ${
+                        bookmarkedItems.has(`${movie.id}-movie`)
+                          ? 'text-blue-400 bg-blue-900/20'
+                          : 'hover:text-blue-400 hover:bg-blue-900/20'
+                      }`}
+                    >
+                      <FaBookmark className="text-xs" />
+                    </button>
+                    <button 
+                      onClick={(e) => handleLike(movie, e)}
+                      className={`transition-colors p-1 rounded-full ${
+                        likedItems.has(`${movie.id}-movie`)
+                          ? 'text-red-400 bg-red-900/20'
+                          : 'hover:text-purple-400 hover:bg-purple-900/20'
+                      }`}
+                    >
+                      <FaHeart className="text-xs" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* Empty state */}
+      {!isLoading && movies.length === 0 && (
+        <div className="text-center py-16">
+          <div className="text-purple-500 text-5xl mb-4">🎬</div>
+          <h3 className="text-xl font-semibold text-white mb-2">No Movies Found</h3>
+          <p className="text-zinc-400 max-w-md mx-auto">
+            Try adjusting your filters or check back later for new additions.
+          </p>
+        </div>
+      )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Movies;
