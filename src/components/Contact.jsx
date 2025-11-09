@@ -68,11 +68,11 @@ const Contact = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-950">
+    <div className="flex min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-950 overflow-hidden">
       <Sidbar />
-      <div className="w-full flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <Topnav />
-        <div className="flex-grow overflow-y-auto bg-gradient-to-br from-[#0d0917] to-[#1a1125] text-white p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-[#0d0917] to-[#1a1125] text-white p-4 md:p-8">
           
           {/* Header Section */}
           <div className="flex items-center gap-3 mb-8">
