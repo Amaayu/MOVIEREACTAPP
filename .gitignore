@@ -38,3 +38,8 @@ backend/coverage
 # Vercel
 .vercel
 .env.production
+
+# Test and diagnostic scripts
+test-*.cjs
+diagnose-*.cjs
+*-test.cjs
