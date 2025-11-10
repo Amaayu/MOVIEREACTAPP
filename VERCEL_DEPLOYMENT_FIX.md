@@ -55,7 +55,19 @@ git push
 ✅ Build completes without errors
 ✅ Production deployment successful
 
+## PWA Service Worker Fix (Bonus)
+
+Fixed the `bad-precaching-response` error by:
+- Disabled PWA in development mode (`devOptions.enabled: false`)
+- Added `navigateFallbackDenylist: [/^\/api/]` to prevent SW from caching API routes
+- This prevents conflicts between frontend (localhost:5173) and backend (localhost:3000)
+
+### Clear Old Service Worker Cache:
+1. Open `clear-sw-cache.html` in your browser, OR
+2. DevTools → Application → Service Workers → Unregister + Clear Storage
+
 ## If Issues Persist
 1. Clear Vercel build cache manually from dashboard
 2. Check that `.npmrc` doesn't have `legacy-peer-deps=true`
 3. Verify `package-lock.json` is regenerated fresh (check git diff)
+4. Clear browser service worker cache using the steps above

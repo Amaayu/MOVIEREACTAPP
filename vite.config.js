@@ -72,6 +72,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg}'],
+        navigateFallback: null,
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.themoviedb\.org\/.*/i,
@@ -115,7 +117,7 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // Disable in dev to avoid conflicts with backend
         type: 'module'
       }
     })
