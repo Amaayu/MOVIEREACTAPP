@@ -37,3 +37,4 @@ backend/coverage
 
 # Vercel
 .vercel
+.env.production
