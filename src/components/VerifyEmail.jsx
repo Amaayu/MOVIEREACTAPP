@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -19,12 +19,10 @@ const VerifyEmail = () => {
       }
 
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/verify-email/${token}`
-        );
+        const response = await api.get(`/auth/verify-email/${token}`);
         
         setStatus('success');
-        setMessage(response.data.message);
+        setMessage('Email verified successfully! You can now login to your account.');
         
         // Redirect to login after 3 seconds
         setTimeout(() => {

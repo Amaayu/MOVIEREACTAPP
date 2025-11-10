@@ -18,7 +18,9 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
   try {
     const transporter = createTransporter();
     
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+    // Remove trailing slash from FRONTEND_URL if present
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
     
     const mailOptions = {
       from: `"${process.env.SMTP_FROM_NAME || 'MovieHub'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
@@ -77,7 +79,9 @@ const sendPasswordResetEmail = async (email, name, resetToken) => {
   try {
     const transporter = createTransporter();
     
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    // Remove trailing slash from FRONTEND_URL if present
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
       from: `"${process.env.SMTP_FROM_NAME || 'MovieHub'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,

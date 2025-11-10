@@ -38,8 +38,10 @@ const Register = () => {
     try {
       const { confirmPassword, ...registerData } = formData;
       const response = await authAPI.register(registerData);
-      dispatch(registerSuccess(response.data));
-      navigate('/');
+      // Don't save token or login user yet - they need to verify email first
+      dispatch(registerSuccess({ user: response.data.user, message: response.data.message }));
+      // Redirect to verification pending page
+      navigate('/verify-email-pending', { state: { email: registerData.email } });
     } catch (err) {
       dispatch(registerFailure(err.response?.data?.message || 'Registration failed'));
     }

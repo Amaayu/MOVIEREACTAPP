@@ -43,12 +43,12 @@ const authSlice = createSlice({
     },
     registerSuccess: (state, action) => {
       state.loading = false;
-      state.isAuthenticated = true;
-      state.user = action.payload.user;
-      state.token = action.payload.token;
+      // Don't authenticate user until email is verified
+      state.isAuthenticated = false;
+      state.user = null;
+      state.token = null;
       state.error = null;
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
+      // Don't store token in localStorage - user must verify email first
     },
     registerFailure: (state, action) => {
       state.loading = false;

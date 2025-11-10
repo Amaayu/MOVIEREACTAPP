@@ -52,23 +52,18 @@ router.post('/register', async (req, res) => {
       console.log(`✅ Verification email sent to ${email}`);
     } catch (emailError) {
       console.error('⚠️ Failed to send verification email:', emailError);
-      // Continue with registration even if email fails - user can still use the app
+      // Continue with registration even if email fails
     }
 
-    // Generate token - user can login and use app immediately
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
-
+    // Don't generate token yet - user must verify email first
     res.status(201).json({
-      token,
       user: { 
         id: user._id, 
         name: user.name, 
         email: user.email,
         isEmailVerified: user.isEmailVerified 
       },
-      message: 'Registration successful. A verification email has been sent to your inbox.',
+      message: 'Registration successful. Please check your email to verify your account.',
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -154,6 +149,14 @@ router.post('/login', async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+        emailNotVerified: true 
+      });
     }
 
     // Generate token

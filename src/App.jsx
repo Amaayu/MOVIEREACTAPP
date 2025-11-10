@@ -19,6 +19,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import OfflineIndicator from './components/OfflineIndicator';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import VerifyEmail from './components/VerifyEmail';
+import VerifyEmailPending from './components/VerifyEmailPending';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 
@@ -34,6 +35,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="//verify-email" element={<VerifyEmail />} /> {/* Handle double slash from old emails */}
+          <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 

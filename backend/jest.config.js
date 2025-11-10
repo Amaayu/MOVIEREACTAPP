@@ -5,10 +5,14 @@ module.exports = {
     'routes/**/*.js',
     'services/**/*.js',
     'middleware/**/*.js',
-    '!**/__tests__/**'
+    '!**/__tests__/**',
+    '!**/node_modules/**',
   ],
   testMatch: [
-    '**/__tests__/**/*.test.js'
+    '**/__tests__/**/*.test.js',
+    '**/?(*.)+(spec|test).js',
   ],
-  verbose: true
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  verbose: true,
+  testTimeout: 10000,
 };
