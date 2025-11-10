@@ -52,7 +52,7 @@ describe('Login Component', () => {
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
-  it('successfully logs in verified user', async () => {
+  it('successfully logs in user', async () => {
     const mockResponse = {
       data: {
         token: 'fake-token',
@@ -60,7 +60,6 @@ describe('Login Component', () => {
           id: '123',
           name: 'Test User',
           email: 'test@example.com',
-          isEmailVerified: true,
         },
       },
     };
@@ -84,33 +83,6 @@ describe('Login Component', () => {
         password: 'password123',
       });
       expect(mockNavigate).toHaveBeenCalledWith('/');
-    });
-  });
-
-  it('shows error for unverified email', async () => {
-    api.authAPI.login.mockRejectedValue({
-      response: {
-        status: 403,
-        data: {
-          message: 'Please verify your email before logging in',
-          emailNotVerified: true,
-        },
-      },
-    });
-
-    renderLogin();
-    
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText(/password/i), {
-      target: { value: 'password123' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/please verify your email/i)).toBeInTheDocument();
     });
   });
 

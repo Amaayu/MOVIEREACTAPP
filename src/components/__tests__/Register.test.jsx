@@ -79,14 +79,14 @@ describe('Register Component', () => {
     });
   });
 
-  it('successfully registers and redirects to verify email pending', async () => {
+  it('successfully registers and redirects to home', async () => {
     const mockResponse = {
       data: {
+        token: 'fake-token',
         user: {
           id: '123',
           name: 'Test User',
           email: 'test@example.com',
-          isEmailVerified: false,
         },
         message: 'Registration successful',
       },
@@ -117,9 +117,7 @@ describe('Register Component', () => {
         email: 'test@example.com',
         password: 'password123',
       });
-      expect(mockNavigate).toHaveBeenCalledWith('/verify-email-pending', {
-        state: { email: 'test@example.com' },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 
