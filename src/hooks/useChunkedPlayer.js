@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
+// API base URL - in production VITE_API_URL is '/api', in dev it's 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
  * Simple chunked audio player - downloads packages sequentially and plays
@@ -29,9 +30,9 @@ export function useChunkedPlayer(trackId) {
   const fetchManifest = useCallback(async () => {
     try {
       console.log(`📋 Fetching manifest for track ${trackId}`);
-      console.log(`URL: ${API_BASE}/api/music/track/${trackId}/manifest`);
+      console.log(`URL: ${API_BASE}/music/track/${trackId}/manifest`);
       
-      const response = await axios.get(`${API_BASE}/api/music/track/${trackId}/manifest`);
+      const response = await axios.get(`${API_BASE}/music/track/${trackId}/manifest`);
       const fetchedManifest = response.data.manifest;
       
       console.log('📋 Manifest received:', fetchedManifest);
@@ -74,10 +75,10 @@ export function useChunkedPlayer(trackId) {
     try {
       // Download package
       console.log(`📦 Downloading package ${packageIndex}/${manifestRef.current.packageCount - 1}`);
-      console.log(`URL: ${API_BASE}/api/music/track/${trackId}/package/${packageIndex}`);
+      console.log(`URL: ${API_BASE}/music/track/${trackId}/package/${packageIndex}`);
       
       const response = await axios.get(
-        `${API_BASE}/api/music/track/${trackId}/package/${packageIndex}`,
+        `${API_BASE}/music/track/${trackId}/package/${packageIndex}`,
         { 
           responseType: 'arraybuffer',
           timeout: 15000

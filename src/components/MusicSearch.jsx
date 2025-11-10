@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { FaSearch, FaPlay, FaClock, FaUser } from 'react-icons/fa';
 import axios from 'axios';
 
-// In production (Vercel), API is on same domain at /api
-// In development, use VITE_API_URL or default to localhost:3000
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
+// API base URL - in production VITE_API_URL is '/api', in dev it's 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const MusicSearch = ({ onTrackSelect }) => {
   const [query, setQuery] = useState('');
@@ -30,9 +29,9 @@ const MusicSearch = ({ onTrackSelect }) => {
 
     try {
       console.log('🎵 Searching with API_BASE:', API_BASE);
-      console.log('🎵 Full URL:', `${API_BASE}/api/music/search?q=${query}`);
+      console.log('🎵 Full URL:', `${API_BASE}/music/search?q=${query}`);
       
-      const response = await axios.get(`${API_BASE}/api/music/search`, {
+      const response = await axios.get(`${API_BASE}/music/search`, {
         params: { q: query, limit: 20 }
       });
 

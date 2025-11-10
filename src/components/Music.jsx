@@ -6,8 +6,8 @@ import Sidbar from './partials/Sidbar';
 import Topnav from './partials/Topnav';
 import MusicPlayer from './MusicPlayer';
 
-// API base URL
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
+// API base URL - in production VITE_API_URL is '/api', in dev it's 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const Music = () => {
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -44,7 +44,7 @@ const Music = () => {
       // Fetch personalized recommendations if logged in
       if (token) {
         try {
-          const recommendationsResponse = await axios.get(`${API_BASE}/api/music/recommendations?limit=12`, { headers });
+          const recommendationsResponse = await axios.get(`${API_BASE}/music/recommendations?limit=12`, { headers });
           setRecommendedTracks(recommendationsResponse.data.recommendations);
         } catch (error) {
           console.error('Error fetching recommendations:', error);
@@ -53,11 +53,11 @@ const Music = () => {
       
       // Fetch all categories in parallel
       const [trending, popular, featured, chill, workout] = await Promise.all([
-        axios.get(`${API_BASE}/api/music/search?q=hits`),
-        axios.get(`${API_BASE}/api/music/search?q=popular`),
-        axios.get(`${API_BASE}/api/music/search?q=top`),
-        axios.get(`${API_BASE}/api/music/search?q=chill`),
-        axios.get(`${API_BASE}/api/music/search?q=workout`)
+        axios.get(`${API_BASE}/music/search?q=hits`),
+        axios.get(`${API_BASE}/music/search?q=popular`),
+        axios.get(`${API_BASE}/music/search?q=top`),
+        axios.get(`${API_BASE}/music/search?q=chill`),
+        axios.get(`${API_BASE}/music/search?q=workout`)
       ]);
       
       setTrendingTracks(trending.data.tracks.slice(0, 12));
@@ -81,7 +81,7 @@ const Music = () => {
         // Load from database if logged in
         try {
           const headers = { Authorization: `Bearer ${token}` };
-          const response = await axios.get(`${API_BASE}/api/music/history/recent?limit=12`, { headers });
+          const response = await axios.get(`${API_BASE}/music/history/recent?limit=12`, { headers });
           setRecentlyPlayed(response.data.tracks);
           return;
         } catch (error) {
@@ -107,7 +107,7 @@ const Music = () => {
       if (token) {
         try {
           const headers = { Authorization: `Bearer ${token}` };
-          await axios.post(`${API_BASE}/api/music/history`, {
+          await axios.post(`${API_BASE}/music/history`, {
             trackId: track.id,
             trackName: track.name,
             artistName: track.artist_name,
@@ -145,7 +145,7 @@ const Music = () => {
   // Handle music search from Topnav
   const handleMusicSearch = async (query) => {
     try {
-      const response = await axios.get(`${API_BASE}/api/music/search?q=${encodeURIComponent(query)}`);
+      const response = await axios.get(`${API_BASE}/music/search?q=${encodeURIComponent(query)}`);
       // Add type field to identify as music tracks
       return response.data.tracks.map(track => ({
         ...track,
