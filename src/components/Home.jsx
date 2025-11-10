@@ -6,6 +6,7 @@ import Topnav from './partials/Topnav';
 import Header from './partials/Header';
 import VideoPlayer from './partials/VideoPlayer';
 import { FaStar, FaPlay, FaHeart, FaBookmark } from 'react-icons/fa';
+import EmailVerificationBanner from './EmailVerificationBanner';
 
 const Home = () => {
   const [wallpaper, setWallpaper] = useState(null);
@@ -196,6 +197,7 @@ const Home = () => {
       <Sidbar/>
       
       <div className="w-full flex-1 flex flex-col">
+        <EmailVerificationBanner />
         <Topnav />
         
         {/* Main content */}

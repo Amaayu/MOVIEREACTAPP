@@ -13,10 +13,14 @@ import About from './components/About';
 import Contact from './components/Contact';
 import Settings from './components/Settings';
 import MovieDetail from './components/MovieDetail';
+import Music from './components/Music';
 import ProtectedRoute from './components/ProtectedRoute';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import OfflineIndicator from './components/OfflineIndicator';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
+import VerifyEmail from './components/VerifyEmail';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 
 const App = () => {
   return (
@@ -29,6 +33,9 @@ const App = () => {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes */}
           <Route
@@ -116,6 +123,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <MovieDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/music"
+            element={
+              <ProtectedRoute>
+                <Music />
               </ProtectedRoute>
             }
           />

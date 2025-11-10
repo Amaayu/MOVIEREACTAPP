@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../utils/axios';
 import { 
   RiSearchLine, 
@@ -7,16 +7,20 @@ import {
   RiMovie2Line,
   RiTvLine,
   RiUserStarLine,
-  RiLoader4Line
+  RiLoader4Line,
+  RiMusic2Line
 } from 'react-icons/ri';
 
-const Topnav = () => {
+const Topnav = ({ onMusicSearch, onMusicSelect }) => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const searchRef = useRef(null);
+  
+  const isMusicPage = location.pathname === '/music';
 
   const getSearchResults = async () => {
     if (!query.trim()) {
@@ -26,10 +30,18 @@ const Topnav = () => {
 
     try {
       setIsSearching(true);
-      const { data } = await axios.get(`/search/multi?query=${query}`);
-      setSearchResults(data.results.filter(item => 
-        item.media_type !== 'person' || item.profile_path
-      ));
+      
+      // If on music page, search for music
+      if (isMusicPage && onMusicSearch) {
+        const results = await onMusicSearch(query);
+        setSearchResults(results || []);
+      } else {
+        // Otherwise search for movies/TV/people
+        const { data } = await axios.get(`/search/multi?query=${query}`);
+        setSearchResults(data.results.filter(item => 
+          item.media_type !== 'person' || item.profile_path
+        ));
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -62,7 +74,10 @@ const Topnav = () => {
     setSearchResults([]);
     setIsSearchOpen(false);
     
-    if (item.media_type === 'movie') {
+    // If on music page and item is a track
+    if (isMusicPage && item.type === 'track' && onMusicSelect) {
+      onMusicSelect(item);
+    } else if (item.media_type === 'movie') {
       navigate(`/movie/${item.id}`);
     } else if (item.media_type === 'tv') {
       navigate(`/tv/${item.id}`);
@@ -82,6 +97,7 @@ const Topnav = () => {
       case 'movie': return <RiMovie2Line className="text-purple-500" />;
       case 'tv': return <RiTvLine className="text-blue-500" />;
       case 'person': return <RiUserStarLine className="text-amber-500" />;
+      case 'track': return <RiMusic2Line className="text-green-500" />;
       default: return <RiMovie2Line />;
     }
   };
@@ -110,7 +126,7 @@ const Topnav = () => {
             type="text"
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent border-none outline-none text-white placeholder-zinc-500"
-            placeholder="Search movies, shows, people..."
+            placeholder={isMusicPage ? "Search for songs..." : "Search movies, shows, people..."}
           />
           {query.length > 0 && (
             <button onClick={clearSearch} className="text-zinc-400 hover:text-white">
@@ -134,29 +150,32 @@ const Topnav = () => {
                   className="flex items-center gap-4 p-4 hover:bg-[#2a1f40] cursor-pointer transition-all duration-200 border-b border-[#6556CD]/10 last:border-0"
                 >
                   <div className="flex-shrink-0">
-                    {item.poster_path || item.profile_path ? (
+                    {item.album_image || item.poster_path || item.profile_path ? (
                       <img
-                        src={`https://image.tmdb.org/t/p/w92/${item.poster_path || item.profile_path}`}
-                        alt={item.title || item.name}
+                        src={item.album_image || `https://image.tmdb.org/t/p/w92/${item.poster_path || item.profile_path}`}
+                        alt={item.name || item.title}
                         className="w-12 h-12 object-cover rounded-lg"
                       />
                     ) : (
                       <div className="w-12 h-12 bg-gradient-to-br from-[#6556CD]/20 to-[#9b8aff]/30 rounded-lg flex items-center justify-center">
-                        {getMediaIcon(item.media_type)}
+                        {getMediaIcon(item.type || item.media_type)}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <div className="text-sm text-white truncate">
-                        {item.title || item.name || item.original_title || item.original_name}
+                        {item.name || item.title || item.original_title || item.original_name}
                       </div>
                       <div className="flex-shrink-0">
-                        {getMediaIcon(item.media_type)}
+                        {getMediaIcon(item.type || item.media_type)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
-                      <span className="capitalize">{item.media_type}</span>
+                      <span className="capitalize">{item.type === 'track' ? 'Song' : item.media_type}</span>
+                      {item.artist_name && (
+                        <span>• {item.artist_name}</span>
+                      )}
                       {item.release_date && (
                         <span>• {new Date(item.release_date).getFullYear()}</span>
                       )}

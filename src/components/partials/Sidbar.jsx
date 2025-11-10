@@ -6,7 +6,7 @@ import {
   RiMovieFill, RiTv2Fill, RiTeamFill, 
   RiInformationFill, RiCustomerServiceFill,
   RiSettings3Fill, RiLogoutBoxRFill,
-  RiMenuFill, RiCloseFill
+  RiMenuFill, RiCloseFill, RiMusicFill
 } from 'react-icons/ri';
 
 const Sidbar = () => {
@@ -26,7 +26,8 @@ const Sidbar = () => {
         { path: '/popular', label: 'Popular', icon: <RiBarChartFill /> },
         { path: '/movies', label: 'Movies', icon: <RiMovieFill /> },
         { path: '/tv-shows', label: 'TV Shows', icon: <RiTv2Fill /> },
-        { path: '/people', label: 'People', icon: <RiTeamFill /> }
+        { path: '/people', label: 'People', icon: <RiTeamFill /> },
+        { path: '/music', label: 'Music', icon: <RiMusicFill /> }
       ]
     },
     {
