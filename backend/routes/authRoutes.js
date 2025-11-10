@@ -46,15 +46,16 @@ router.post('/register', async (req, res) => {
     // Create default settings for user
     await Settings.create({ userId: user._id });
 
-    // Send verification email
+    // Send verification email (only once, during registration)
     try {
       await sendVerificationEmail(email, name, verificationToken);
+      console.log(`✅ Verification email sent to ${email}`);
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Continue with registration even if email fails
+      console.error('⚠️ Failed to send verification email:', emailError);
+      // Continue with registration even if email fails - user can still use the app
     }
 
-    // Generate token (user can use app but some features may be restricted)
+    // Generate token - user can login and use app immediately
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
       expiresIn: '7d',
     });
@@ -67,7 +68,7 @@ router.post('/register', async (req, res) => {
         email: user.email,
         isEmailVerified: user.isEmailVerified 
       },
-      message: 'Registration successful. Please check your email to verify your account.',
+      message: 'Registration successful. A verification email has been sent to your inbox.',
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -101,7 +102,7 @@ router.get('/verify-email/:token', async (req, res) => {
   }
 });
 
-// Resend verification email
+// Resend verification email (only if user manually requests it)
 router.post('/resend-verification', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -114,6 +115,11 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
+    // Check if token was recently sent (prevent spam - wait at least 2 minutes)
+    if (user.emailVerificationExpires && user.emailVerificationExpires > new Date(Date.now() + 22 * 60 * 60 * 1000)) {
+      return res.status(429).json({ message: 'Please wait a few minutes before requesting another email' });
+    }
+
     // Generate new verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -124,6 +130,7 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
 
     // Send verification email
     await sendVerificationEmail(user.email, user.name, verificationToken);
+    console.log(`✅ Verification email resent to ${user.email}`);
 
     res.json({ message: 'Verification email sent successfully' });
   } catch (error) {
